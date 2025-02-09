@@ -22,11 +22,6 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int spoon(void*);
-int mythread_create(int, void*);
-int mythread_join(int);
-
-
 
 // ulib.c
 int stat(const char*, struct stat*);
