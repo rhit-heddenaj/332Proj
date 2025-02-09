@@ -686,7 +686,21 @@ uint64 spoon(void* arg)
 {
   // Add your code here...
   printf("In spoon system call with argument %p\n", arg);
+  return 0;
+
+
   
+  
+
+}
+
+uint64 mythread_create(int arg1, void* arg2) {
+    //create thread
+    /*printf("In mythread create system call with arguments %d and %p\n", arg1, arg2);
+    printf("mythread create has not been implemented yet!\n");
+    return 0;
+    */
+
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
@@ -711,7 +725,7 @@ uint64 spoon(void* arg)
   //np->trapframe->a0 = 0;
 
   np->trapframe->sp = (uint64) kalloc();
-  np->trapframe->epc = (uint64) arg;
+  np->trapframe->epc = (uint64) arg1;
 
 
 
@@ -737,14 +751,6 @@ uint64 spoon(void* arg)
 
   return pid;
 
-
-}
-
-uint64 mythread_create(int arg1, void* arg2) {
-    //create thread
-    printf("In mythread create system call with arguments %d and %p\n", arg1, arg2);
-    printf("mythread create has not been implemented yet!\n");
-    return 0;
 }
 
 uint64 mythread_join(int arg1) {
