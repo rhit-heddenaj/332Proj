@@ -710,7 +710,7 @@ uint64 spoon(void* arg)
   // Cause fork to return 0 in the child.
   //np->trapframe->a0 = 0;
 
-  np->trapframe->sp = kalloc(np->sz);
+  np->trapframe->sp = (uint64) kalloc();
   np->trapframe->epc = (uint64) arg;
 
 
