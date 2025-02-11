@@ -701,43 +701,63 @@ uint64 mythread_create(int arg1, void* arg2) {
     return 0;
     */
 
-  int i, pid;
+  int i;
   struct proc *np;
   struct proc *p = myproc();
 
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
-  }
+  } 
+
 
   // Copy user memory from parent to child.
+   
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     freeproc(np);
     release(&np->lock);
     return -1;
   }
+  
+  //acquire(&np->lock);
   np->sz = p->sz;
+  
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
-
+  
   // Cause fork to return 0 in the child.
-  //np->trapframe->a0 = 0;
 
-  np->trapframe->sp = (uint64) kalloc();
-  np->trapframe->epc = (uint64) arg1;
+  //printf("start of p: %p, start of p stack: %p\n", p, p->trapframe->sp);
+   
+  //np->trapframe->sp = kalloc();
+  
+  uint64 newsize = uvmalloc(np->pagetable, np->sz, np->sz + PGSIZE, PTE_W);
+  if(!newsize) {
+    printf("ERROR ALLOCATING SPACE FOR STACK\n");
+    return -1;
+  }
+  
+  np->sz = newsize;
+  np->trapframe->sp = newsize;
+
+  //printf("\n\np sp: %p\n\nnp sp: %p\n\n", p->trapframe->sp, np->trapframe->sp);
+
+  np->trapframe->epc = (uint64) arg2;
+  np->trapframe->ra = 0;
 
 
 
   // increment reference counts on open file descriptors.
+  
   for(i = 0; i < NOFILE; i++)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
+  
+  
 
-  safestrcpy(np->name, p->name, sizeof(p->name));
-
-  pid = np->pid;
+  //safestrcpy(np->name, p->name, sizeof(p->name));
 
   release(&np->lock);
 
@@ -749,7 +769,7 @@ uint64 mythread_create(int arg1, void* arg2) {
   np->state = RUNNABLE;
   release(&np->lock);
 
-  return pid;
+  return 0;
 
 }
 
