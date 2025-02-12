@@ -744,6 +744,7 @@ uint64 mythread_create(int arg1, void* arg2) {
   //printf("\n\np sp: %p\n\nnp sp: %p\n\n", p->trapframe->sp, np->trapframe->sp);
 
   np->trapframe->epc = (uint64) arg2;
+  np->trapframe->a0 = arg1;
   np->trapframe->ra = 0;
 
 

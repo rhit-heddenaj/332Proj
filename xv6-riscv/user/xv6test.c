@@ -4,16 +4,18 @@
 #include <stddef.h>
 
 void* thread(void* arg) {
-    sleep(2);
-    printf("\nTHREAD1CALLEDAAAAA\n");
+    //sleep(1);
+    int curr = *(int*)arg;
+    printf("\n %d \n", curr);
     exit(0);
     return NULL;
 
 }
 
 void* thread2(void* arg) {
-    sleep(2);
-    printf("\nFROM2HEREBBBB\n");
+    //sleep(2);
+    int blah = *(int*)arg;
+    printf("\n %d \n", blah);
     exit(0);
     return NULL;
 
@@ -26,10 +28,11 @@ int main(int argc, char *argv[]) {
   //printf("thread1 addr: %p\n", thread);
 
   //spoon(thread);
-  mythread_create(11, thread);
-
+  int val1 = 9713;
+  mythread_create(&val1, thread);
+  int val2 = 6851;
   //printf("thread2 addr: %p\n", thread2);
-  mythread_create(8, thread2);
+  mythread_create(&val2, thread2);
 
   //printf("Made it here lol\n");
 
