@@ -15,6 +15,8 @@ struct proc *initproc;
 int nextpid = 1;
 struct spinlock pid_lock;
 
+//static int MAX_THREADS = 16;
+
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
@@ -694,6 +696,11 @@ uint64 spoon(void* arg)
 
 }
 
+
+//int tids[MAX_THREADS];
+//int currId = 0;
+
+
 uint64 mythread_create(int arg1, void* arg2) {
     //create thread
     /*printf("In mythread create system call with arguments %d and %p\n", arg1, arg2);
@@ -707,6 +714,7 @@ uint64 mythread_create(int arg1, void* arg2) {
 
   // Allocate process.
   if((np = allocproc()) == 0){
+    printf("error allocating space for new process\n");
     return -1;
   } 
 
@@ -714,6 +722,7 @@ uint64 mythread_create(int arg1, void* arg2) {
   // Copy user memory from parent to child.
    
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
+    printf("error copying pagetable\n");
     freeproc(np);
     release(&np->lock);
     return -1;
@@ -744,7 +753,7 @@ uint64 mythread_create(int arg1, void* arg2) {
   //printf("\n\np sp: %p\n\nnp sp: %p\n\n", p->trapframe->sp, np->trapframe->sp);
 
   np->trapframe->epc = (uint64) arg2;
-  np->trapframe->a0 = arg1;
+  np->trapframe->a0 = (uint64) arg1;
   np->trapframe->ra = 0;
 
 
