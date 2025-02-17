@@ -28,34 +28,25 @@ void* fn2(void* arg) {
 
 
 int main(int argc, char *argv[]) {
-  printf("Hello from my test case in xv6\n");
- 
   for(int i = 0; i < 30; i++) {
     if(i % 2 == 0) {
 	int num = i * 30;
 	if(mythread_create(&num, fn1) == -1) {
-	    printf("AHHHHHHHHHHH\n");
+	    printf("Error creating thread with function 1\n");
 	}
     } else {
 	int num = i * 20 + 91;
 	if(mythread_create(&num, fn2) == -1) {
-	    printf("AHDSDGSDYSDHSDYGSDS\n");
+	    printf("Error creating thread with function 2\n");
 	}
     }
   } 
 
-  //mythread_join(30);
-
   for(int i = 0; i < 30; i++) {
     mythread_join(10);
-  } 
-
-  /*
-  mythread_join(11);
-  mythread_join(5);
-  */
+  }
  
-  printf("FINISHED THE FILE\n");
+  printf("Finished waiting :)\n");
 
   exit(0);
 }

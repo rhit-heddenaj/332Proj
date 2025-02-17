@@ -708,64 +708,46 @@ int running = 0;
 
 uint64 mythread_create(int arg1, void* arg2) {
     //create thread
-    /*printf("In mythread create system call with arguments %d and %p\n", arg1, arg2);
-    printf("mythread create has not been implemented yet!\n");
-    return 0
-    */
-
   int i;
   struct proc *np;
   struct proc *p = myproc();
 
   // Allocate process.
+
+  
   if((np = allocproc()) == 0){
     printf("error allocating space for new process\n");
     return -1;
   } 
+  
 
+  
 
   // Copy user memory from parent to child.
-   
+  
+  
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");
     freeproc(np);
     release(&np->lock);
     return -1;
   }
-  
-
-
-  
-  //acquire(&np->lock);
-  np->sz = p->sz;
-  
-
-  // copy saved user registers.
-  *(np->trapframe) = *(p->trapframe);
-  
-  // Cause fork to return 0 in the child.
-
-  //printf("start of p: %p, start of p stack: %p\n", p, p->trapframe->sp);
    
-  //np->trapframe->sp = kalloc(); 
+  //np->pagetable = p->pagetable; 
 
-  uint64 newsize = uvmalloc(np->pagetable, np->sz, np->sz + PGSIZE, PTE_W);
+  uint64 newsize = uvmalloc(np->pagetable, p->sz, p->sz + PGSIZE, PTE_W);
   if(!newsize) {
     printf("ERROR ALLOCATING SPACE FOR STACK\n");
+    freeproc(np);
     return -1;
   }
   
   
   np->sz = newsize;
   np->trapframe->sp = newsize;
-
-  //printf("\n\np sp: %p\n\nnp sp: %p\n\n", p->trapframe->sp, np->trapframe->sp);
-
   np->trapframe->epc = (uint64) arg2;
   np->trapframe->a0 = (uint64) arg1;
   np->trapframe->ra = 0;
-
-
 
   // increment reference counts on open file descriptors.
   
@@ -773,11 +755,7 @@ uint64 mythread_create(int arg1, void* arg2) {
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
-  
-  
-
-  //safestrcpy(np->name, p->name, sizeof(p->name));
-  
+    
   threads[currId] = np;
   currId++;
   running++;
@@ -798,24 +776,13 @@ uint64 mythread_create(int arg1, void* arg2) {
 
 }
 
-int num_joined = 0;
-
 uint64 mythread_join(int arg1) {
     //join threads
     
-    while(num_joined < arg1) {
-	wait(0);
-	running--;
-	num_joined++;
-    }
+    wait(0);
+    running--;
     
-
-    //wait(0);
-    //running--;
-    //printf("thread has finished\n");
-
     if(running == 0) {
-	//printf("resetting the id\n");
 	currId = 0;
     }
 
