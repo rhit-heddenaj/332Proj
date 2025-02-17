@@ -6,6 +6,8 @@
 #include "proc.h"
 #include "defs.h"
 
+#define MAX_THREADS 1024
+
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -15,7 +17,7 @@ struct proc *initproc;
 int nextpid = 1;
 struct spinlock pid_lock;
 
-//static int MAX_THREADS = 16;
+
 
 extern void forkret(void);
 static void freeproc(struct proc *p);
@@ -696,16 +698,19 @@ uint64 spoon(void* arg)
 
 }
 
-
 //int tids[MAX_THREADS];
-//int currId = 0;
+
+
+int currId = 0;
+struct proc *threads[MAX_THREADS];
+int running = 0;
 
 
 uint64 mythread_create(int arg1, void* arg2) {
     //create thread
     /*printf("In mythread create system call with arguments %d and %p\n", arg1, arg2);
     printf("mythread create has not been implemented yet!\n");
-    return 0;
+    return 0
     */
 
   int i;
@@ -728,6 +733,9 @@ uint64 mythread_create(int arg1, void* arg2) {
     return -1;
   }
   
+
+
+  
   //acquire(&np->lock);
   np->sz = p->sz;
   
@@ -739,13 +747,14 @@ uint64 mythread_create(int arg1, void* arg2) {
 
   //printf("start of p: %p, start of p stack: %p\n", p, p->trapframe->sp);
    
-  //np->trapframe->sp = kalloc();
-  
+  //np->trapframe->sp = kalloc(); 
+
   uint64 newsize = uvmalloc(np->pagetable, np->sz, np->sz + PGSIZE, PTE_W);
   if(!newsize) {
     printf("ERROR ALLOCATING SPACE FOR STACK\n");
     return -1;
   }
+  
   
   np->sz = newsize;
   np->trapframe->sp = newsize;
@@ -768,7 +777,13 @@ uint64 mythread_create(int arg1, void* arg2) {
   
 
   //safestrcpy(np->name, p->name, sizeof(p->name));
-
+  
+  threads[currId] = np;
+  currId++;
+  running++;
+  if(running >= MAX_THREADS) {
+   printf("It is a design decision to save resources/memory to max out the number of threads running on a single process at a time at 1,024\n Please use less threads"); 
+  }
   release(&np->lock);
 
   acquire(&wait_lock);
@@ -783,12 +798,30 @@ uint64 mythread_create(int arg1, void* arg2) {
 
 }
 
+int num_joined = 0;
+
 uint64 mythread_join(int arg1) {
     //join threads
+    
+    while(num_joined < arg1) {
+	wait(0);
+	running--;
+	num_joined++;
+    }
+    
 
-    printf("In mythread join system call with argument %d\n", arg1);
-    printf("mythread join has not been implemented yet\n");
+    //wait(0);
+    //running--;
+    //printf("thread has finished\n");
+
+    if(running == 0) {
+	//printf("resetting the id\n");
+	currId = 0;
+    }
+
+
     return 0;
+
 }
 
 

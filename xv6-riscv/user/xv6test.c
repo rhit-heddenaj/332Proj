@@ -3,42 +3,59 @@
 #include "user/user.h"
 #include <stddef.h>
 
-void* thread(void* arg) {
+
+void* fn1(void* arg) {
     int curr = *(int*)arg;
-    for (int i = 0; i < 100; i++) {
-	printf("Thread 1 says %d\n", curr);
+    for (int i = 0; i < 12; i++) {
+	printf("Function 1 says %d\n", curr + i);
     }
-    exit(0);
+    exit(5);
     return NULL;
 }
 
-void* thread2(void* arg) {
+void* fn2(void* arg) {
     int blah = *(int*)arg;
-    for (int i = 0; i < 100; i++) {
-	printf("Thread 2 says %d\n", blah);
+    for (int i = 0; i < 15; i++) {
+	printf("Function 2 says %d\n", blah + i);
     }
-    exit(0);
+    exit(5);
     return NULL;
 }
+
+
+
+
 
 
 int main(int argc, char *argv[]) {
   printf("Hello from my test case in xv6\n");
-  
-  
-  int val1 = 9713;
-  if(mythread_create(&val1, thread) < 0) {
-    printf("ERROR ERROR ERROR\n");
-  }
-  int val2 = 6851;
-  if(mythread_create(&val2, thread2) < 0) {
-    printf("ERROR ERROR ERROR\n");
-  }
+ 
+  for(int i = 0; i < 30; i++) {
+    if(i % 2 == 0) {
+	int num = i * 30;
+	if(mythread_create(&num, fn1) == -1) {
+	    printf("AHHHHHHHHHHH\n");
+	}
+    } else {
+	int num = i * 20 + 91;
+	if(mythread_create(&num, fn2) == -1) {
+	    printf("AHDSDGSDYSDHSDYGSDS\n");
+	}
+    }
+  } 
 
+  //mythread_join(30);
 
+  for(int i = 0; i < 30; i++) {
+    mythread_join(10);
+  } 
+
+  /*
   mythread_join(11);
-  mythread_join(8);
-  
+  mythread_join(5);
+  */
+ 
+  printf("FINISHED THE FILE\n");
 
   exit(0);
 }
