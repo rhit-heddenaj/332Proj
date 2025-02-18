@@ -698,13 +698,9 @@ uint64 spoon(void* arg)
 
 }
 
-//int tids[MAX_THREADS];
-
-
 int currId = 0;
 struct proc *threads[MAX_THREADS];
 int running = 0;
-
 
 uint64 mythread_create(int arg1, void* arg2) {
     //create thread
@@ -719,13 +715,10 @@ uint64 mythread_create(int arg1, void* arg2) {
     printf("error allocating space for new process\n");
     return -1;
   } 
-  
-
-  
 
   // Copy user memory from parent to child.
-  
-  
+ 
+
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");
     freeproc(np);
@@ -733,7 +726,7 @@ uint64 mythread_create(int arg1, void* arg2) {
     return -1;
   }
    
-  //np->pagetable = p->pagetable; 
+  
 
   uint64 newsize = uvmalloc(np->pagetable, p->sz, p->sz + PGSIZE, PTE_W);
   if(!newsize) {
@@ -775,8 +768,10 @@ uint64 mythread_create(int arg1, void* arg2) {
   return 0;
 
 }
+  
+  
 
-uint64 mythread_join(int arg1) {
+uint64 mythread_join() {
     //join threads
     
     wait(0);

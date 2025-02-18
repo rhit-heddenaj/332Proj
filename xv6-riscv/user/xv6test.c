@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   } 
 
   for(int i = 0; i < 30; i++) {
-    mythread_join(10);
+    mythread_join();
   }
  
   printf("Finished waiting :)\n");

@@ -24,7 +24,7 @@ int sleep(int);
 int uptime(void);
 int spoon(void*);
 int mythread_create(int*, void*);
-int mythread_join(int);
+int mythread_join();
 
 
 

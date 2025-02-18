@@ -87,7 +87,7 @@ void            exit(int);
 int             fork(void);
 uint64		spoon(void*);
 uint64		mythread_create(int, void*);
-uint64		mythread_join(int);
+uint64		mythread_join();
 int             growproc(int);
 void            proc_mapstacks(pagetable_t);
 pagetable_t     proc_pagetable(struct proc *);
