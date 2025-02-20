@@ -399,7 +399,7 @@ wait(uint64 addr)
   struct proc *p = myproc();
 
   acquire(&wait_lock);
-
+  //printf("in wait successfully\n");
   for(;;){
     // Scan through table looking for exited children.
     havekids = 0;
@@ -710,21 +710,31 @@ uint64 mythread_create(int arg1, void* arg2) {
 
   // Allocate process.
 
-  
+  //printf("ARG IN KERNEL: %d\n", arg1); 
   if((np = allocproc()) == 0){
     printf("error allocating space for new process\n");
     return -1;
-  } 
-
+  }  
   // Copy user memory from parent to child.
  
+  /*
+  if(copytable(p->pagetable, np->pagetable, p->sz) < 0){
+    printf("error copying pagetable\n");
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+  */
+  
 
+  
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");
     freeproc(np);
     release(&np->lock);
     return -1;
   }
+  
    
   
 
@@ -770,16 +780,20 @@ uint64 mythread_create(int arg1, void* arg2) {
 }
   
   
-
+int joined = 0;
 uint64 mythread_join() {
     //join threads
     
+    //acquire(&threads[joined]->lock);
     wait(0);
     running--;
+    joined++;
     
     if(running == 0) {
 	currId = 0;
+	joined = 0;
     }
+    //release(&threads[joined]->lock);
 
 
     return 0;
