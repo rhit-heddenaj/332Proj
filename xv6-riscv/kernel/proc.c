@@ -162,8 +162,9 @@ freeproc(struct proc *p)
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
-  if(p->pagetable)
+  if(p->pagetable && !p->isthread) {
     proc_freepagetable(p->pagetable, p->sz);
+  }   
   p->pagetable = 0;
   p->sz = 0;
   p->pid = 0;
@@ -378,7 +379,6 @@ exit(int status)
   wakeup(p->parent);
   
   acquire(&p->lock);
-
   p->xstate = status;
   p->state = ZOMBIE;
 
@@ -386,7 +386,7 @@ exit(int status)
 
   // Jump into the scheduler, never to return.
   sched();
-  panic("zombie exit");
+  panic("sched running\n");
 }
 
 // Wait for a child process to exit and return its pid.
@@ -496,7 +496,6 @@ sched(void)
     panic("sched running");
   if(intr_get())
     panic("sched interruptible");
-
   intena = mycpu()->intena;
   swtch(&p->context, &mycpu()->context);
   mycpu()->intena = intena;
@@ -710,15 +709,26 @@ uint64 mythread_create(int arg1, void* arg2) {
 
   // Allocate process.
 
-  //printf("ARG IN KERNEL: %d\n", arg1); 
+  p->isthread = 1;
   if((np = allocproc()) == 0){
     printf("error allocating space for new process\n");
     return -1;
   }  
   // Copy user memory from parent to child.
+  np->isthread = 1; 
  
-  /*
   if(copytable(p->pagetable, np->pagetable, p->sz) < 0){
+    printf("error copying pagetable\n");
+    freeproc(np);
+    release(&np->lock);
+    return -1;
+  }
+   
+  
+  
+
+  /* 
+  if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");
     freeproc(np);
     release(&np->lock);
@@ -726,19 +736,11 @@ uint64 mythread_create(int arg1, void* arg2) {
   }
   */
   
-
-  
-  if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
-    printf("error copying pagetable\n");
-    freeproc(np);
-    release(&np->lock);
-    return -1;
-  }
   
    
   
 
-  uint64 newsize = uvmalloc(np->pagetable, p->sz, p->sz + PGSIZE, PTE_W);
+  uint64 newsize = uvmalloc(np->pagetable, p->sz, p->sz + PGSIZE, PTE_W | PTE_R);
   if(!newsize) {
     printf("ERROR ALLOCATING SPACE FOR STACK\n");
     freeproc(np);
@@ -782,18 +784,24 @@ uint64 mythread_create(int arg1, void* arg2) {
   
 int joined = 0;
 uint64 mythread_join() {
-    //join threads
-    
-    //acquire(&threads[joined]->lock);
+    //join threads 
     wait(0);
     running--;
     joined++;
-    
+
     if(running == 0) {
+	printf("nothing is running anymore :)\n");
+	for(int i = 0; i < currId-1; i++) {
+	    struct proc *p = threads[i];
+	    //printf("about to free thread %d which is %p\n", i, p);
+	    p->isthread = 0;
+	    freeproc(p);
+	    
+	}
 	currId = 0;
 	joined = 0;
     }
-    //release(&threads[joined]->lock);
+
 
 
     return 0;

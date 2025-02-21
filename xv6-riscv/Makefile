@@ -138,6 +138,7 @@ UPROGS=\
 	$U/_arraylist\
 	$U/_find\
 	$U/_xv6test\
+	$U/_memtest\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)

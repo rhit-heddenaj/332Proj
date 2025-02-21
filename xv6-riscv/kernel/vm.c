@@ -351,6 +351,7 @@ copytable(pagetable_t old, pagetable_t new, uint64 sz)
 
         pa = PTE2PA(*pte);
         flags = PTE_FLAGS(*pte);
+	
 
         if(mappages(new, i, PGSIZE, pa, flags) != 0){
             uvmunmap(new, 0, i/PGSIZE, 1);
