@@ -267,15 +267,28 @@ userinit(void)
 struct proc *threads[MAX_THREADS];
 int currId = 0;
 
-
-
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
 
+int growarg(int n, struct proc *p) {
+  uint64 sz;
+
+  sz = p->sz;
+  if(n > 0){
+    if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
+      return -1;
+    }
+  } else if(n < 0){
+    sz = uvmdealloc(p->pagetable, sz, sz + n);
+  }
+  p->sz = sz;
+  return 0;
+}
 
 int
 mygrow(int n)
 {
+/*
   uint64 sz;
   struct proc *p = myproc();
 
@@ -283,7 +296,7 @@ mygrow(int n)
   if(n > 0){
     for(int i = 0; i < currId; i++) {
       if(threads[i]->fid == p->fid) {
-        printf("ooglegobble\n");
+        printf("\n\nooglegobble\n\n");
 	if((sz = uvmalloc(threads[i]->pagetable, sz, sz + n, PTE_W)) == 0) {
 	    return -1;
 	}
@@ -299,7 +312,19 @@ mygrow(int n)
     }
   }
   return 0;
+  */
+
+  for(int i = 0; i < currId; i++) {
+    if(threads[i]->fid == myproc()->fid) {
+	//found family
+	growarg(n, threads[i]);
+    }
+  }
+  return 0;
+
 }
+
+
 
 
 int
@@ -734,7 +759,7 @@ uint64 spoon(void* arg)
 }
 
 int currFid = 0;
-int families[MAX_FAMILIES] = { 0 }; //empty array of 16 0's
+int families[MAX_FAMILIES] = { 0 }; //empty array of 0's
 int running = 0;
 
 uint64 mythread_create(int arg1, void* arg2) {
@@ -746,7 +771,7 @@ uint64 mythread_create(int arg1, void* arg2) {
   // Allocate process.
 
   p->isthread = 1;
-  printf("parent id: %d\n", p->pid);
+  //printf("parent id: %d\n", p->pid);
   if((np = allocproc()) == 0){
     printf("error allocating space for new process\n");
     return -1;
@@ -765,11 +790,10 @@ uint64 mythread_create(int arg1, void* arg2) {
     families[currFid] = p->pid;
     p->fid = currFid;
     currFid++;
-  } else {
-    np->fid = p->fid;
   }
+  np->fid = p->fid;
 
-  printf("new process id: %d\n", np->pid);
+  //printf("new process id: %d\n", np->pid);
  
   if(copytable(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");

@@ -89,6 +89,7 @@ uint64		spoon(void*);
 uint64		mythread_create(int, void*);
 uint64		mythread_join();
 int             growproc(int);
+int		mygrow(int);
 void            proc_mapstacks(pagetable_t);
 pagetable_t     proc_pagetable(struct proc *);
 void            proc_freepagetable(pagetable_t, uint64);

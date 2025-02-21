@@ -3,70 +3,50 @@
 #include "user/user.h"
 #include <stddef.h>
 
-int variable = 0;
+unsigned long long int target = 343;
+int numThreads = 4;
 
-//pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+void* runner(void* arg) {
+        
 
-void* fn1(void* arg) {
-    int curr = *(int*)arg;
-   
-    printf("fn1 arg: %d\n", curr);
-    variable += curr;
-    printf("this is the new variable after fn1: %d\n", variable);
-    /*
-    for (int i = 0; i < 15; i++) {
-	printf("Function 1 says %d\n", curr + i);
+    int thread = *(int*)arg;
+    int curr = thread;
+    while(curr < target) {
+	printf("thread %d testing %d\n", thread+1, curr);
+	if(target % curr == 0) {
+	    printf("%d is a factor\n", curr);
+	}
+	curr+= numThreads;
     }
-    */
     exit(5);
     return NULL;
-}
 
-void* fn2(void* arg) {
-    int blah = *(int*)arg;
-    printf("fn2 arg: %d\n", blah);
-    variable += blah;
-    printf("this is the new variable after fn2: %d\n", variable);
-   
-    /*
-    for (int i = 0; i < 15; i++) {
-	printf("Function 2 says %d\n", blah + i);
-    }
-    */
-    
-    exit(5);
-    return NULL;
 }
 
 
+int main(void) {
+  /* you can ignore the linter warning about this */
+  //unsigned long long int target, i, start = 0;
+    if (numThreads > 50 || numThreads < 1) {
+	printf("Bad number of threads!\n");
+    return 0;
+  }
+
+  for (int j = 0; j < numThreads; j++) {
+    int* arg = (int*)malloc(sizeof(int));
+    *arg = j;
+    mythread_create(arg, runner);
+
+  }
 
 
-
-
-int main(int argc, char *argv[]) {
-  for(int i = 0; i < 30; i++) {
-    if(i % 2 == 0) {
-	int num = i * 30;
-	int *arg = (int*)malloc(sizeof(int));
-	*arg = num;
-	if(mythread_create(arg, fn1) == -1) {
-	    printf("Error creating thread with function 1\n");
-	}
-    } else {
-	int num = i * 21;
-	int *arg = (int*)malloc(sizeof(int));
-	*arg = num;
-	if(mythread_create(arg, fn2) == -1) {
-	    printf("Error creating thread with function 2\n");
-	}
-    }
-  } 
-  for(int i = 0; i < 30; i++) {
+  for (int j = 0; j < numThreads; j++) {
     mythread_join();
   }
- 
-  printf("Finished waiting :)\n");
 
-  exit(0);
+  printf("All threads complete\n"); 
+  return 0;
+
 }
+
 
