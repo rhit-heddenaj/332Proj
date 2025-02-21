@@ -1,3 +1,4 @@
+
 #include "types.h"
 #include "param.h"
 #include "memlayout.h"
@@ -710,35 +711,22 @@ uint64 mythread_create(int arg1, void* arg2) {
   // Allocate process.
 
   p->isthread = 1;
+  printf("parent id: %d\n", p->pid);
   if((np = allocproc()) == 0){
     printf("error allocating space for new process\n");
     return -1;
   }  
   // Copy user memory from parent to child.
-  np->isthread = 1; 
+  np->isthread = 1;
+  np->pid = p->pid;
+  printf("new process id: %d\n", np->pid);
  
   if(copytable(p->pagetable, np->pagetable, p->sz) < 0){
     printf("error copying pagetable\n");
     freeproc(np);
     release(&np->lock);
     return -1;
-  }
-   
-  
-  
-
-  /* 
-  if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
-    printf("error copying pagetable\n");
-    freeproc(np);
-    release(&np->lock);
-    return -1;
-  }
-  */
-  
-  
-   
-  
+  } 
 
   uint64 newsize = uvmalloc(np->pagetable, p->sz, p->sz + PGSIZE, PTE_W | PTE_R);
   if(!newsize) {
@@ -790,10 +778,9 @@ uint64 mythread_join() {
     joined++;
 
     if(running == 0) {
-	printf("nothing is running anymore :)\n");
+	//printf("nothing is running anymore :)\n");
 	for(int i = 0; i < currId-1; i++) {
 	    struct proc *p = threads[i];
-	    //printf("about to free thread %d which is %p\n", i, p);
 	    p->isthread = 0;
 	    freeproc(p);
 	    
