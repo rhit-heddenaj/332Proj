@@ -283,6 +283,7 @@ mygrow(int n)
   if(n > 0){
     for(int i = 0; i < currId; i++) {
       if(threads[i]->fid == p->fid) {
+        printf("ooglegobble\n");
 	if((sz = uvmalloc(threads[i]->pagetable, sz, sz + n, PTE_W)) == 0) {
 	    return -1;
 	}
@@ -783,8 +784,7 @@ uint64 mythread_create(int arg1, void* arg2) {
     freeproc(np);
     return -1;
   }
-  
-  
+
   np->sz = newsize;
   np->trapframe->sp = newsize;
   np->trapframe->epc = (uint64) arg2;
