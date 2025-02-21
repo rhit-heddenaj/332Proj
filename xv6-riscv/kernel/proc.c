@@ -8,6 +8,7 @@
 #include "defs.h"
 
 #define MAX_THREADS 1024
+#define MAX_FAMILIES 1024
 
 struct cpu cpus[NCPU];
 
@@ -211,6 +212,8 @@ proc_pagetable(struct proc *p)
   return pagetable;
 }
 
+
+
 // Free a process's page table, and free the
 // physical memory it refers to.
 void
@@ -260,8 +263,44 @@ userinit(void)
   release(&p->lock);
 }
 
+
+struct proc *threads[MAX_THREADS];
+int currId = 0;
+
+
+
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
+
+
+int
+mygrow(int n)
+{
+  uint64 sz;
+  struct proc *p = myproc();
+
+  sz = p->sz;
+  if(n > 0){
+    for(int i = 0; i < currId; i++) {
+      if(threads[i]->fid == p->fid) {
+	if((sz = uvmalloc(threads[i]->pagetable, sz, sz + n, PTE_W)) == 0) {
+	    return -1;
+	}
+	threads[i]->sz = sz;
+    }
+   }
+  } else if(n < 0){
+    for (int i = 0; i < currId; i++) {
+      if(threads[i]->fid == p->fid) {
+	sz = uvmdealloc(threads[i]->pagetable, sz, sz + n);
+	threads[i]->sz = sz;
+      }
+    }
+  }
+  return 0;
+}
+
+
 int
 growproc(int n)
 {
@@ -691,15 +730,10 @@ uint64 spoon(void* arg)
   // Add your code here...
   printf("In spoon system call with argument %p\n", arg);
   return 0;
-
-
-  
-  
-
 }
 
-int currId = 0;
-struct proc *threads[MAX_THREADS];
+int currFid = 0;
+int families[MAX_FAMILIES] = { 0 }; //empty array of 16 0's
 int running = 0;
 
 uint64 mythread_create(int arg1, void* arg2) {
@@ -718,7 +752,22 @@ uint64 mythread_create(int arg1, void* arg2) {
   }  
   // Copy user memory from parent to child.
   np->isthread = 1;
-  np->pid = p->pid;
+  int new_fam = 1;
+  for (int i = 0; i < MAX_FAMILIES; i++) {
+    if(families[i] == p->pid) {
+	new_fam = 0;
+	break;	    //found ancestor
+    }
+  }
+
+  if(new_fam) {
+    families[currFid] = p->pid;
+    p->fid = currFid;
+    currFid++;
+  } else {
+    np->fid = p->fid;
+  }
+
   printf("new process id: %d\n", np->pid);
  
   if(copytable(p->pagetable, np->pagetable, p->sz) < 0){
@@ -742,6 +791,10 @@ uint64 mythread_create(int arg1, void* arg2) {
   np->trapframe->a0 = (uint64) arg1;
   np->trapframe->ra = 0;
 
+  threads[currId] = np;
+  currId++;
+  running++; 
+
   // increment reference counts on open file descriptors.
   
   for(i = 0; i < NOFILE; i++)
@@ -749,9 +802,7 @@ uint64 mythread_create(int arg1, void* arg2) {
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
     
-  threads[currId] = np;
-  currId++;
-  running++;
+  
   if(running >= MAX_THREADS) {
    printf("It is a design decision to save resources/memory to max out the number of threads running on a single process at a time at 1,024\n Please use less threads"); 
   }
@@ -785,8 +836,10 @@ uint64 mythread_join() {
 	    freeproc(p);
 	    
 	}
-	currId = 0;
-	joined = 0;
+ //TODO
+	currId = 0; //sketchy max
+	joined = 0; 
+	currFid = 0; // this might be sketch 
     }
 
 
